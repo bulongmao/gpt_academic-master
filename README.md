@@ -11,6 +11,33 @@
 - 知识库入口和 RAG 相关插件
 - 可扩展的 `crazy_functions` 插件机制
 
+## 系统架构
+
+```mermaid
+flowchart LR
+    U[用户 / 业务文档] --> G[Gradio Web 界面]
+    G --> C[基础快捷功能]
+    G --> P[crazy_functions 业务插件]
+    C --> L[request_llms 模型接入层]
+    P --> L
+    P --> R[RAG / 知识库]
+    P --> D[数据分析与报告生成]
+    L --> M[OpenAI / Claude / Gemini / 本地模型]
+    D --> O[Word / Excel / PDF / 图表]
+```
+
+```mermaid
+flowchart TD
+    A[上传项目数据] --> B[格式解析与清洗]
+    B --> C{业务任务}
+    C --> D[历史数据对比]
+    C --> E[动因 / 成本分析]
+    C --> F[文档总结与问答]
+    D --> G[可视化与咨询报告]
+    E --> G
+    F --> G
+```
+
 ## 目录
 
 ```text
