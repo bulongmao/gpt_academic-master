@@ -1,0 +1,122 @@
+
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>保安成本测算器</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 1000px; margin: auto; }
+        h2 { color: #1a73e8; }
+        label, select, input { margin: 6px 0; display: block; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+        th { background-color: #f0f0f0; }
+        .hidden { display: none; }
+        #explanation { white-space: pre-wrap; margin-top: 30px; padding: 12px; background: #f9f9f9; border: 1px dashed #999; }
+    </style>
+</head>
+<body>
+    <h2>保安岗位成本测算器</h2>
+
+    <label for="campusType">请选择校区类型：</label>
+    <select id="campusType" onchange="toggleInputs()">
+        <option value="multi">多门校区</option>
+        <option value="single">单门校区</option>
+    </select>
+
+    <div id="multiInputs">
+        <label>主门数量：<input type="number" id="mainGate" value="0"></label>
+        <label>副门数量：<input type="number" id="sideGate" value="0"></label>
+    </div>
+
+    <div id="singleInputs" class="hidden">
+        <label>单门数量：<input type="number" id="singleGate" value="0"></label>
+    </div>
+
+    <label>监控间数：<input type="number" id="monitorRoom" value="0"></label>
+    <label>消控间数：<input type="number" id="alarmRoom" value="0"></label>
+    <label>校区数（用于管理岗）：<input type="number" id="campusCount" value="0"></label>
+
+    <label>门岗时长类型：
+        <select id="dutyType">
+            <option value="24">24小时门岗</option>
+            <option value="12">12小时门岗</option>
+        </select>
+    </label>
+
+    <button onclick="calculate()">📊 点击计算</button>
+
+    <div id="result"></div>
+    <div id="explanation"></div>
+
+    <script>
+        const CONFIG = {
+            "主门门岗": { config: 2 },
+            "副门门岗": { config: 1.5 },
+            "单门门岗": { config: 2 },
+            "监控岗":   { config: 2 },
+            "消控岗":   { config: 2 },
+            "管理岗":   { config: 1 }
+        };
+
+        function toggleInputs() {
+            const type = document.getElementById("campusType").value;
+            document.getElementById("multiInputs").classList.toggle("hidden", type !== "multi");
+            document.getElementById("singleInputs").classList.toggle("hidden", type !== "single");
+        }
+
+        function calculate() {
+            const type = document.getElementById("campusType").value;
+            const dutyType = document.getElementById("dutyType").value;
+            const resultDiv = document.getElementById("result");
+            const explainDiv = document.getElementById("explanation");
+            let data = [];
+            let explain = [];
+
+            const monitor = Number(document.getElementById("monitorRoom").value);
+            const alarm = Number(document.getElementById("alarmRoom").value);
+            const campus = Number(document.getElementById("campusCount").value);
+            const unitCost = 6.72;
+            const personPerPost = dutyType === "24" ? 4 : 2;
+
+            if (type === "multi") {
+                const main = Number(document.getElementById("mainGate").value);
+                const side = Number(document.getElementById("sideGate").value);
+                data.push(["主门门岗", main * CONFIG["主门门岗"].config, CONFIG["主门门岗"], main]);
+                data.push(["副门门岗", side * CONFIG["副门门岗"].config, CONFIG["副门门岗"], side]);
+            } else {
+                const single = Number(document.getElementById("singleGate").value);
+                data.push(["单门门岗", single * CONFIG["单门门岗"].config, CONFIG["单门门岗"], single]);
+            }
+
+            data.push(["监控岗", monitor * CONFIG["监控岗"].config, CONFIG["监控岗"], monitor]);
+            data.push(["消控岗", alarm * CONFIG["消控岗"].config, CONFIG["消控岗"], alarm]);
+            data.push(["管理岗", campus * CONFIG["管理岗"].config, CONFIG["管理岗"], campus]);
+
+            let totalCost = 0;
+            let rows = data.map(([name, posts, conf, inputNum]) => {
+                const people = Math.ceil(posts * personPerPost);
+                const cost = people * unitCost;
+                totalCost += cost;
+
+                explain.push(
+                    `【${name}】\n输入数: ${inputNum}，配置标准: ${conf.config} 岗/单位 → 岗位数 = ${inputNum} × ${conf.config} = ${posts.toFixed(2)}\n` +
+                    `岗位人数 = ⌈${posts.toFixed(2)} × ${personPerPost}⌉ = ${people} 人\n` +
+                    `年人力成本 = ${people} × ${unitCost} = ${cost.toFixed(2)} 万元\n`
+                );
+
+                return `<tr><td>${name}</td><td>${posts.toFixed(2)}</td><td>${people}</td><td>${cost.toFixed(2)}</td></tr>`;
+            });
+
+            resultDiv.innerHTML = `
+                <table>
+                    <thead><tr><th>岗位名称</th><th>岗位数</th><th>岗位人数</th><th>年人力成本（万元）</th></tr></thead>
+                    <tbody>${rows.join("")}</tbody>
+                    <tfoot><tr><td colspan="3"><strong>总成本</strong></td><td><strong>${totalCost.toFixed(2)}</strong></td></tr></tfoot>
+                </table>
+            `;
+            explainDiv.textContent = "📘 计算过程如下：\n\n" + explain.join("\n");
+        }
+    </script>
+</body>
+</html>

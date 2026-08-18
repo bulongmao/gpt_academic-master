@@ -1,0 +1,74 @@
+
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>保洁成本测算器</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+        h2 { color: #1a73e8; margin-bottom: 20px; }
+        label, select, input { margin: 6px 0; display: block; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+        th { background-color: #f0f0f0; }
+        #explanation { white-space: pre-wrap; margin-top: 30px; padding: 12px; background: #f9f9f9; border: 1px dashed #999; }
+    </style>
+</head>
+<body>
+    <h2>保洁岗位成本测算器</h2>
+
+    <label>建筑面积（平方米）：<input type="number" id="cleanArea" value="0"></label>
+    <label>物料消耗成本（万元）：<input type="number" id="materialCost" value="0"></label>
+    <button onclick="calculateCleaning()">📊 点击计算</button>
+
+    <div id="cleaningResult"></div>
+    <div id="explanation"></div>
+
+    <script>
+        function calculateCleaning() {
+            const area = Number(document.getElementById("cleanArea").value);
+            const material = Number(document.getElementById("materialCost").value);
+            let perPersonArea = 2305, perCost = 5.85;
+
+            if (area > 36000) {
+                perPersonArea = 2564;
+                perCost = 6.0;
+            }
+
+            const rawPeople = area / perPersonArea;
+            const people = Math.ceil(rawPeople);
+            const laborCost = people * perCost;
+            const totalCost = laborCost + material;
+
+            const table = `
+                <table>
+                    <thead><tr><th>项目</th><th>数值</th></tr></thead>
+                    <tbody>
+                        <tr><td>人均服务面积（㎡/人）</td><td>${perPersonArea}</td></tr>
+                        <tr><td>岗位人数（人）</td><td>${people}</td></tr>
+                        <tr><td>年人力成本（万元）</td><td>${laborCost.toFixed(2)}</td></tr>
+                        <tr><td>物料消耗（万元）</td><td>${material.toFixed(2)}</td></tr>
+                        <tr><td><strong>总成本（万元）</strong></td><td><strong>${totalCost.toFixed(2)}</strong></td></tr>
+                    </tbody>
+                </table>
+            `;
+
+            const explanation = `
+📘 计算过程如下：
+
+1. 输入建筑面积：${area} ㎡
+2. 匹配人均服务面积与成本标准：
+   - 人均服务面积：${perPersonArea} ㎡/人
+   - 人均成本：${perCost} 万元/人
+3. 计算岗位人数：
+   - 岗位人数 = ⌈${area} ÷ ${perPersonArea}⌉ = ${people}
+4. 年人力成本 = ${people} × ${perCost} = ${laborCost.toFixed(2)} 万元
+5. 总成本 = ${laborCost.toFixed(2)} + ${material.toFixed(2)} = ${totalCost.toFixed(2)} 万元
+`;
+
+            document.getElementById("cleaningResult").innerHTML = table;
+            document.getElementById("explanation").textContent = explanation;
+        }
+    </script>
+</body>
+</html>

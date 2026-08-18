@@ -1,0 +1,100 @@
+
+<!DOCTYPE html>
+<html lang="zh"><!DOCTYPE html>
+<html lang="zh"></h2>
+
+    <label>建筑面积（平方米）：<input type="number" id="cleanArea" value="0"></label>
+    <label>物料消耗成本（万元）：<input type="number" id="materialCost" value="0"></label>
+    <button onclick="calculateCleaning()">📊 点击计算</button>
+
+    <div id="cleaningResult"></div>
+
+    <script>
+        const CONFIG = {
+            "主门门岗": { config: 2, cost: 6.6 },
+            "副门门岗": { config: 1.5, cost: 6.6 },
+            "单门门岗": { config: 2, cost: 6.6 },
+            "监控岗":   { config: 2, cost: 6.6 },
+            "消控岗":   { config: 2, cost: 6.6 },
+            "管理岗":   { config: 1, cost: 6.6 }
+        };
+
+        function toggleInputs() {
+            const type = document.getElementById("campusType").value;
+            document.getElementById("multiInputs").classList.toggle("hidden", type !== "multi");
+            document.getElementById("singleInputs").classList.toggle("hidden", type !== "single");
+        }
+
+        function calculate() {
+            const type = document.getElementById("campusType").value;
+            const resultDiv = document.getElementById("result");
+            let data = [];
+
+            const monitor = Number(document.getElementById("monitorRoom").value);
+            const alarm = Number(document.getElementById("alarmRoom").value);
+            const campus = Number(document.getElementById("campusCount").value);
+
+            if (type === "multi") {
+                const main = Number(document.getElementById("mainGate").value);
+                const side = Number(document.getElementById("sideGate").value);
+                data.push(["主门门岗", main * CONFIG["主门门岗"].config]);
+                data.push(["副门门岗", side * CONFIG["副门门岗"].config]);
+            } else {
+                const single = Number(document.getElementById("singleGate").value);
+                data.push(["单门门岗", single * CONFIG["单门门岗"].config]);
+            }
+
+            data.push(["监控岗", monitor * CONFIG["监控岗"].config]);
+            data.push(["消控岗", alarm * CONFIG["消控岗"].config]);
+            data.push(["管理岗", campus * CONFIG["管理岗"].config]);
+
+            let totalCost = 0;
+            let rows = data.map(([name, posts]) => {
+                const people = posts * 24 * 30 / 8 / 21.75;
+                const cost = people * CONFIG[name].cost;
+                totalCost += cost;
+                return `<tr><td>${name}</td><td>${posts.toFixed(2)}</td><td>${people.toFixed(2)}</td><td>${cost.toFixed(2)}</td></tr>`;
+            });
+
+            resultDiv.innerHTML = `
+                <table>
+                    <thead><tr><th>岗位名称</th><th>岗位数</th><th>岗位人数</th><th>年人力成本（万元）</th></tr></thead>
+                    <tbody>${rows.join("")}</tbody>
+                    <tfoot><tr><td colspan="3"><strong>总成本</strong></td><td><strong>${totalCost.toFixed(2)}</strong></td></tr></tfoot>
+                </table>
+            `;
+        }
+
+        function calculateCleaning() {
+            const area = Number(document.getElementById("cleanArea").value);
+            const material = Number(document.getElementById("materialCost").value);
+            let perPersonArea = 2305, perCost = 5.85;
+
+            if (area > 36000) {
+                perPersonArea = 2564;
+                perCost = 6.0;
+            }
+
+            const people = area / perPersonArea;
+            const laborCost = people * perCost;
+            const totalCost = laborCost + material;
+
+            const result = `
+                <table>
+                    <thead><tr><th>项目</th><th>数值</th></tr></thead>
+                    <tbody>
+                        <tr><td>人均服务面积（㎡/人）</td><td>${perPersonArea}</td></tr>
+                        <tr><td>岗位人数（人）</td><td>${people.toFixed(2)}</td></tr>
+                        <tr><td>年人力成本（万元）</td><td>${laborCost.toFixed(2)}</td></tr>
+                        <tr><td>物料消耗（万元）</td><td>${material.toFixed(2)}</td></tr>
+                        <tr><td><strong>总成本（万元）</strong></td><td><strong>${totalCost.toFixed(2)}</strong></td></tr>
+                    </tbody>
+                </table>
+            `;
+
+            document.getElementById("cleaningResult").innerHTML = result;
+        }
+    </script>
+</body>
+</html>
+</body></html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>保安成本测算器</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+        h2 { color: #1a73e8; }
+        label, select, input { margin: 6px 0; display: block; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+        th { background-color: #f0f0f0; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <h2>保安岗位成本测算器</h2>
+
+    <label for="campusType">请选择校区类型：</label>
+    <select id="campusType" onchange="toggleInputs()">
+        <option value="multi">多门校区</option>
+        <option value="single">单门校区</option>
+    </select>
+
+    <div id="multiInputs">
+        <label>主门数量：<input type="number" id="mainGate" value="0"></label>
+        <label>副门数量：<input type="number" id="sideGate" value="0"></label>
+    </div>
+
+    <div id="singleInputs" class="hidden">
+        <label>单门数量：<input type="number" id="singleGate" value="0"></label>
+    </div>
+
+    <label>监控间数：<input type="number" id="monitorRoom" value="0"></label>
+    <label>消控间数：<input type="number" id="alarmRoom" value="0"></label>
+    <label>校区数（用于管理岗）：<input type="number" id="campusCount" value="0"></label>
+
+    <button onclick="calculate()">📊 点击计算</button>
+
+    <div id="result"></div>
+
+        <script>
+        const CONFIG = {
+            "主门门岗": { config: 2, cost: 6.6 },
+            "副门门岗": { config: 1.5, cost: 6.6 },
+            "单门门岗": { config: 2, cost: 6.6 },
+            "监控岗":   { config: 2, cost: 6.6 },
+            "消控岗":   { config: 2, cost: 6.6 },
+            "管理岗":   { config: 1, cost: 6.6 }
+        };
+
+        function toggleInputs() {
+            const type = document.getElementById("campusType").value;
+            document.getElementById("multiInputs").classList.toggle("hidden", type !== "multi");
+            document.getElementById("singleInputs").classList.toggle("hidden", type !== "single");
+        }
+
+        function calculate() {
+            const type = document.getElementById("campusType").value;
+            const resultDiv = document.getElementById("result");
+            let data = [];
+
+            const monitor = Number(document.getElementById("monitorRoom").value);
+            const alarm = Number(document.getElementById("alarmRoom").value);
+            const campus = Number(document.getElementById("campusCount").value);
+
+            if (type === "multi") {
+                const main = Number(document.getElementById("mainGate").value);
+                const side = Number(document.getElementById("sideGate").value);
+                data.push(["主门门岗", main * CONFIG["主门门岗"].config]);
+                data.push(["副门门岗", side * CONFIG["副门门岗"].config]);
+            } else {
+                const single = Number(document.getElementById("singleGate").value);
+                data.push(["单门门岗", single * CONFIG["单门门岗"].config]);
+            }
+
+            data.push(["监控岗", monitor * CONFIG["监控岗"].config]);
+            data.push(["消控岗", alarm * CONFIG["消控岗"].config]);
+            data.push(["管理岗", campus * CONFIG["管理岗"].config]);
+
+            let totalCost = 0;
+            let rows = data.map(([name, posts]) => {
+                const people = posts * 24 * 30 / 8 / 21.75;
+                const cost = people * CONFIG[name].cost;
+                totalCost += cost;
+                return `<tr><td>${name}</td><td>${posts.toFixed(2)}</td><td>${people.toFixed(2)}</td><td>${cost.toFixed(2)}</td></tr>`;
+            });
+
+            resultDiv.innerHTML = `
+                <table>
+                    <thead><tr><th>岗位名称</th><th>岗位数</th><th>岗位人数</th><th>年人力成本（万元）</th></tr></thead>
+                    <tbody>${rows.join("")}</tbody>
+                    <tfoot><tr><td colspan="3"><strong>总成本</strong></td><td><strong>${totalCost.toFixed(2)}</strong></td></tr></tfoot>
+                </table>
+            `;
+        }
+    </script>
+</body>
+</html>
